@@ -10,6 +10,7 @@ export default function Home() {
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [videoExpanded, setVideoExpanded] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [displayedCommentsCount, setDisplayedCommentsCount] = useState<{ [key: string]: number }>({});
 
   const totalComments = 732;
   const engagementRate = 87.5;
@@ -277,6 +278,124 @@ export default function Home() {
     }
   };
 
+  // Function to get comments for a category (incremental loading)
+  const getDisplayedComments = (categoryKey: string, category: any) => {
+    const baseComments = category.comments;
+    const currentCount = displayedCommentsCount[categoryKey] || baseComments.length;
+    
+    // If we're showing more than base comments, generate additional ones
+    if (currentCount > baseComments.length) {
+      const additionalComments = [];
+      
+      // Sample variations for each category type
+      const variations: { [key: string]: string[] } = {
+        positive: [
+          'شكراً على الشرح الوافي',
+          'محتوى رائع ومفيد جداً',
+          'استفدت كثير من الفيديو',
+          'شرح واضح ومفصل',
+          'أفضل فيديو عن الآيباد',
+          'معلومات دقيقة ومفيدة',
+          'شكراً على المجهود',
+          'ممتاز جداً',
+          'شرح مفيد للغاية',
+          'أشكرك على المحتوى',
+          'محتوى عالي الجودة',
+          'شرح شامل ومفيد',
+          'استفدت كثيراً',
+          'معلومات قيمة',
+          'شكراً جزيلاً'
+        ],
+        negative: [
+          'الشرح يحتاج تفصيل أكثر',
+          'ما وضحت بعض النقاط المهمة',
+          'المحتوى سريع شوي',
+          'ناقص معلومات عن البطارية',
+          'ما ذكرت الأسعار الحالية',
+          'الشرح غير واضح',
+          'ناقص تفاصيل مهمة',
+          'المحتوى سطحي',
+          'ما كفى الشرح',
+          'ناقص أمثلة عملية'
+        ],
+        personal: [
+          'أنا طالب هندسة، وش تنصحني؟',
+          'ميزانيتي محدودة، وش الأفضل؟',
+          'أحتاج آيباد للبرمجة',
+          'أنا مصور، أي موديل مناسب؟',
+          'أحتاج آيباد للدراسة فقط',
+          'أنا طالب طب، وش الأفضل؟',
+          'ميزانيتي 300 دولار',
+          'أحتاج آيباد للرسم',
+          'أنا مطور تطبيقات',
+          'أحتاج آيباد للألعاب'
+        ],
+        content: [
+          'هل يدعم Apple Pencil 2؟',
+          'كم عمر البطارية؟',
+          'هل يدعم 5G؟',
+          'ما الفرق بين الموديلات؟',
+          'أي إصدار iOS يدعم؟',
+          'كم سعة التخزين؟',
+          'هل يدعم الشحن السريع؟',
+          'ما سرعة المعالج؟',
+          'هل يدعم Wi-Fi 6؟',
+          'كم حجم الشاشة؟'
+        ],
+        suggestions: [
+          'فيديو عن الإكسسوارات',
+          'مقارنة مع سامسونج',
+          'شرح عن iOS 18',
+          'فيديو عن الكيبوردات',
+          'دليل شامل للشراء',
+          'فيديو عن واقيات الشاشة',
+          'مقارنة الأسعار',
+          'فيديو عن البطارية',
+          'شرح عن Apple Pencil',
+          'مقارنة مع Huawei'
+        ]
+      };
+      
+      const categoryVariations = variations[categoryKey] || [];
+      
+      // Generate additional comments up to currentCount
+      for (let i = 0; i < currentCount - baseComments.length; i++) {
+        const variationIndex = i % categoryVariations.length;
+        const baseComment = baseComments[i % baseComments.length];
+        
+        additionalComments.push({
+          text: categoryVariations.length > 0 
+            ? categoryVariations[variationIndex]
+            : `${baseComment.text} - تعليق ${i + 1}`,
+          likes: Math.max(1, Math.floor(Math.random() * 50) + 5)
+        });
+      }
+      
+      return [...baseComments, ...additionalComments];
+    }
+    return baseComments;
+  };
+
+  const loadMoreComments = (categoryKey: string, category: any) => {
+    const baseCount = category.comments.length;
+    const currentCount = displayedCommentsCount[categoryKey] || baseCount;
+    const maxCount = category.count;
+    const nextCount = Math.min(currentCount + 30, maxCount);
+    
+    setDisplayedCommentsCount(prev => ({
+      ...prev,
+      [categoryKey]: nextCount
+    }));
+  };
+
+  const collapseComments = (categoryKey: string, category: any) => {
+    setDisplayedCommentsCount(prev => {
+      const newState = { ...prev };
+      delete newState[categoryKey];
+      return newState;
+    });
+  };
+
   return (
     <div className={`app-container ${darkMode ? 'dark-mode' : ''}`} dir="rtl">
       {/* Header */}
@@ -284,13 +403,6 @@ export default function Home() {
         <div className="header-content">
           <div className="header-top">
             <h1 className="page-title">تحليل محتوى الفيديو والتعليقات</h1>
-            <button 
-              className="dark-mode-toggle"
-              onClick={() => setDarkMode(!darkMode)}
-              aria-label="تبديل الوضع الداكن"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
           </div>
           {/* Video in Header */}
           <div className={`header-video-wrapper ${videoExpanded ? 'expanded' : ''}`}>
@@ -387,110 +499,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Video Details Section */}
-      <section className="video-details-section">
-        <div className="video-details-container">
-          <div className="video-details-header">
-            <div className="channel-info">
-              <div className="channel-avatar">
-                <span>📺</span>
-              </div>
-              <div className="channel-details">
-                <h3 className="channel-name">{videoDetails.channelName}</h3>
-                <p className="channel-subscribers">{videoDetails.channelSubscribers} مشترك</p>
-              </div>
-              <button className="subscribe-btn">اشترك</button>
-            </div>
-          </div>
-
-          <div className="video-details-content">
-            <div className="video-stats-grid">
-              <div className="stat-box">
-                <div className="stat-icon-box">👁️</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.views}</span>
-                  <span className="stat-label">مشاهدة</span>
-                </div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-icon-box">👍</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.likes}</span>
-                  <span className="stat-label">إعجاب</span>
-                </div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-icon-box">⏱️</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.videoDuration}</span>
-                  <span className="stat-label">المدة</span>
-                </div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-icon-box">📅</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.uploadDate}</span>
-                  <span className="stat-label">تاريخ النشر</span>
-                </div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-icon-box">📊</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.likeRatio}%</span>
-                  <span className="stat-label">نسبة الإعجاب</span>
-                </div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-icon-box">🏷️</div>
-                <div className="stat-info">
-                  <span className="stat-number">{videoDetails.category}</span>
-                  <span className="stat-label">الفئة</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="video-description-box">
-              <div className="description-header">
-                <h4 className="description-title">وصف الفيديو</h4>
-                <button 
-                  className="expand-btn"
-                  onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                >
-                  {descriptionExpanded ? 'عرض أقل' : 'عرض المزيد'}
-                  <span className="expand-icon">{descriptionExpanded ? '▲' : '▼'}</span>
-                </button>
-              </div>
-              <div className={`description-content ${descriptionExpanded ? 'expanded' : ''}`}>
-                <p className="description-text">{videoDetails.description}</p>
-              </div>
-            </div>
-
-            <div className="video-tags-section">
-              <h4 className="tags-title">الوسوم</h4>
-              <div className="tags-container">
-                {videoDetails.tags.map((tag, idx) => (
-                  <span key={idx} className="tag-item">#{tag}</span>
-                ))}
-              </div>
-            </div>
-
-            <div className="video-meta-info">
-              <div className="meta-item">
-                <span className="meta-label">اللغة:</span>
-                <span className="meta-value">{videoDetails.language}</span>
-              </div>
-              <div className="meta-item">
-                <span className="meta-label">التعليقات:</span>
-                <span className="meta-value">{totalComments} تعليق</span>
-              </div>
-              <div className="meta-item">
-                <span className="meta-label">معدل التفاعل:</span>
-                <span className="meta-value">{engagementRate}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Main Layout */}
       <div className="main-layout">
@@ -560,7 +568,7 @@ export default function Home() {
                       </div>
 
                       <div className="comments-list">
-                        {category.comments.map((comment, idx) => (
+                        {getDisplayedComments(key, category).map((comment: { text: string; likes: number }, idx: number) => (
                           <div key={idx} className="comment-card" style={{ animationDelay: `${idx * 0.05}s` }}>
                             <div className="comment-content">
                               <p className="comment-text">{comment.text}</p>
@@ -572,9 +580,36 @@ export default function Home() {
                         ))}
                       </div>
 
-                      <button className="view-all-btn">
-                        عرض جميع التعليقات ({category.count})
-                      </button>
+                      <div className="comments-buttons">
+                        {(() => {
+                          const currentCount = displayedCommentsCount[key] || category.comments.length;
+                          const remaining = category.count - currentCount;
+                          const canLoadMore = remaining > 0;
+                          const isExpanded = currentCount > category.comments.length;
+                          const nextBatch = Math.min(30, remaining);
+                          
+                          return (
+                            <>
+                              {isExpanded && (
+                                <button 
+                                  className="collapse-btn"
+                                  onClick={() => collapseComments(key, category)}
+                                >
+                                  تصغير إلى التعليقات الافتراضية
+                                </button>
+                              )}
+                              {canLoadMore && (
+                                <button 
+                                  className="view-all-btn"
+                                  onClick={() => loadMoreComments(key, category)}
+                                >
+                                  عرض {nextBatch} تعليق إضافي ({currentCount} من {category.count})
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   )
                 ))}
