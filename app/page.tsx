@@ -1,70 +1,142 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import commentsData from '../comments.json';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('comments');
-  const [activeCommentCategory, setActiveCommentCategory] = useState('positive');
+  const [activeCommentCategory, setActiveCommentCategory] = useState('all');
   const [darkMode, setDarkMode] = useState(true);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [videoExpanded, setVideoExpanded] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [displayedCommentsCount, setDisplayedCommentsCount] = useState<{ [key: string]: number }>({});
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (descriptionExpanded) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      // Prevent scrolling
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore scrolling
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [descriptionExpanded]);
+
   const totalComments = 732;
   const engagementRate = 87.5;
 
   // Video details data
   const videoDetails = {
-    channelName: 'قناة التقنية',
-    channelSubscribers: '1.2 مليون',
+    channelName: 'Abdurrahman Dulli || عبد الرحمن ضللي',
+    channelSubscribers: '13.2K',
     videoDuration: '18:45',
-    uploadDate: '15 أكتوبر 2024',
-    views: '125,430',
-    likes: '4,250',
+    uploadDate: '15 Jun 2024',
+    views: '117,519',
+    likes: '3.2K',
     dislikes: '89',
     likeRatio: 97.9,
-    description: `في هذا الفيديو الشامل، سنأخذك في رحلة كاملة لشراء آيباد في عام 2024. سنغطي جميع الموديلات المتاحة من آيباد 9 إلى آيباد برو، مع مقارنات مفصلة حول الأسعار والمميزات والاستخدامات المناسبة لكل موديل.
+    description: `هذا الفيديو مقارنة بين كل الايبادات المتاحة للشراء حالياً ولسا مدعومة بتحديث ال iPads 18، لتعرف اي واحد منهم بيناسبك لتشتريه بالوقت الحالي
 
-🎯 ما ستتعلمه في هذا الفيديو:
-• مقارنة شاملة بين جميع موديلات الآيباد
-• أفضل آيباد حسب الاستخدام (دراسة، رسم، ألعاب)
-• نصائح مهمة حول التخزين والذاكرة
-• معلومات عن Apple Pencil والتوافق
-• نصائح الشراء والأسعار
+رابط موقع Paperlike:
 
-📱 الموديلات المغطاة:
-- iPad 9
-- iPad 10
-- iPad Air 5
-- iPad Air 6
-- iPad Pro 11"
-- iPad Pro 12.9"
+Paperlike.com/Abdurrahmandulli
 
-لا تنسى الاشتراك في القناة والضغط على زر الإعجاب إذا استفدت من المحتوى!`,
+----------------------------
+
+أقسام الفيديو:
+
+00:00  مقدمة
+
+00:19  ملخص WWDC
+
+02:35  iPad 9
+
+04:06  iPad 10
+
+05:07  iPad Air 4
+
+05:38  iPad mini 6
+
+06:37  فرق الميزات المدعومة
+
+07:03  iPad Air 5
+
+08:04  iPad Air 6
+
+09:17  iPad Pro M1, M2
+
+09:42  iPad Pro M4
+
+10:49  Paperlike
+
+11:13  iPad Pro M4
+
+12:22  الخلاصة
+
+----------------------------
+
+لا تنسوا أهلنا في غزة من الدعاء
+
+أي ايباد تختار
+
+أي ايباد الأنسب لك
+
+اي ايباد بيناسبك`,
     tags: ['آيباد', 'iPad', 'Apple', 'تابلت', 'مراجعة', 'مقارنة', 'شراء', 'تكنولوجيا', 'iOS', 'Apple Pencil'],
     category: 'تكنولوجيا',
     language: 'العربية'
   };
 
+  // All comments from JSON file
+  const allComments = (commentsData as { comment: string }[]).map((c, idx) => ({
+    text: c.comment,
+    likes: Math.floor(Math.random() * 100) + 1,
+    id: idx
+  }));
+
   // New Comment Classifications for Comments Tab
   const commentCategories = {
+    all: {
+      title: 'جميع التعليقات',
+      icon: '💬',
+      count: allComments.length,
+      percentage: 100,
+      color: '#6366f1',
+      comments: allComments.slice(0, 30)
+    },
     positive: {
       title: 'رأي إيجابي',
       icon: '😊',
       count: 245,
       percentage: 33.5,
       color: '#10b981',
-      comments: [
-        { text: 'شرح ممتاز ومختصر', likes: 89 },
-        { text: 'معلومات قيمة ومفيدة', likes: 47 },
-        { text: 'أفضل شرح شفته عن الآيبادات', likes: 31 },
-        { text: 'اشتريت iPad Air 6 وممتاز', likes: 34 },
-        { text: 'جبت iPad 9 وما ندمت', likes: 27 },
-        { text: 'محتوى جميل ومفيد', likes: 42 },
-        { text: 'الفيديو ساعدني اختار ايباد اير ٥', likes: 35 }
-      ]
+      comments: allComments.filter(c => 
+        c.text.includes('ممتاز') || c.text.includes('رائع') || c.text.includes('شكر') || 
+        c.text.includes('جميل') || c.text.includes('مفيد') || c.text.includes('أفضل') ||
+        c.text.includes('بارك') || c.text.includes('❤') || c.text.includes('👍') ||
+        c.text.includes('الله يعطيك') || c.text.includes('استمر') || c.text.includes('اسطور')
+      ).slice(0, 30)
     },
     negative: {
       title: 'رأي سلبي',
@@ -72,13 +144,11 @@ export default function Home() {
       count: 78,
       percentage: 10.7,
       color: '#ef4444',
-      comments: [
-        { text: 'الكلام سريع جداً', likes: 54 },
-        { text: 'ما ذكرت موضوع البطارية', likes: 36 },
-        { text: 'بطارية iPad Air 6 سيئة جداً', likes: 28 },
-        { text: 'ندمان على شراء iPad 10', likes: 15 },
-        { text: 'iPad 9 يسخن كثير', likes: 19 }
-      ]
+      comments: allComments.filter(c => 
+        c.text.includes('سريع') || c.text.includes('معقد') || c.text.includes('سيئ') ||
+        c.text.includes('ندم') || c.text.includes('مقاطع') || c.text.includes('خسار') ||
+        c.text.includes('فاشل') || c.text.includes('مزعج')
+      ).slice(0, 30)
     },
     personal: {
       title: 'أسئلة شخصية',
@@ -86,13 +156,10 @@ export default function Home() {
       count: 156,
       percentage: 21.3,
       color: '#8b5cf6',
-      comments: [
-        { text: 'أنا طالب طب، أي آيباد تنصحني؟', likes: 45 },
-        { text: 'ميزانيتي 500 دولار، وش الأفضل؟', likes: 38 },
-        { text: 'أبغى آيباد للرسم والتصميم', likes: 32 },
-        { text: 'محتاج آيباد يستمر معي 6 سنوات', likes: 28 },
-        { text: 'أنا لاعب ببجي، وش تنصحني؟', likes: 24 }
-      ]
+      comments: allComments.filter(c => 
+        c.text.includes('أنا') || c.text.includes('انا') || c.text.includes('عندي') ||
+        c.text.includes('ميزانيت') || c.text.includes('تنصحني') || c.text.includes('محتاج')
+      ).slice(0, 30)
     },
     content: {
       title: 'أسئلة متعلقة بالمحتوى',
@@ -100,14 +167,10 @@ export default function Home() {
       count: 187,
       percentage: 25.5,
       color: '#3b82f6',
-      comments: [
-        { text: 'هل 64 جيجا تكفي للجامعة؟', likes: 45 },
-        { text: 'هل آيباد 9 يدعم iOS 18؟', likes: 32 },
-        { text: 'ايباد اير 6 يدعم 90 فريم؟', likes: 24 },
-        { text: 'iPad Air 5 vs iPad Air 6 - أيهما أفضل؟', likes: 35 },
-        { text: 'كم سعر ايباد آير 5؟', likes: 28 },
-        { text: 'أي قلم يعمل مع أي آيباد؟', likes: 22 }
-      ]
+      comments: allComments.filter(c => 
+        c.text.includes('هل') || c.text.includes('؟') || c.text.includes('كم') ||
+        c.text.includes('ايش') || c.text.includes('وش') || c.text.includes('شنو')
+      ).slice(0, 30)
     },
     suggestions: {
       title: 'اقتراحات',
@@ -115,13 +178,10 @@ export default function Home() {
       count: 66,
       percentage: 9.0,
       color: '#f59e0b',
-      comments: [
-        { text: 'ياريت فيديو عن البطارية', likes: 42 },
-        { text: 'عايز شرح Apple Pencil وأنواعه', likes: 35 },
-        { text: 'فيديو عن الكيبوردات وأنواعها', likes: 28 },
-        { text: 'شرح مقارنة بين تابلتات سامسونج وآيباد', likes: 25 },
-        { text: 'ياريت فيديو عن واقيات الشاشة', likes: 18 }
-      ]
+      comments: allComments.filter(c => 
+        c.text.includes('ياريت') || c.text.includes('يا ريت') || c.text.includes('فيديو عن') ||
+        c.text.includes('اقتراح') || c.text.includes('ممكن تعمل') || c.text.includes('نصيحة')
+      ).slice(0, 30)
     }
   };
 
@@ -283,103 +343,19 @@ export default function Home() {
     const baseComments = category.comments;
     const currentCount = displayedCommentsCount[categoryKey] || baseComments.length;
     
-    // If we're showing more than base comments, generate additional ones
-    if (currentCount > baseComments.length) {
-      const additionalComments = [];
-      
-      // Sample variations for each category type
-      const variations: { [key: string]: string[] } = {
-        positive: [
-          'شكراً على الشرح الوافي',
-          'محتوى رائع ومفيد جداً',
-          'استفدت كثير من الفيديو',
-          'شرح واضح ومفصل',
-          'أفضل فيديو عن الآيباد',
-          'معلومات دقيقة ومفيدة',
-          'شكراً على المجهود',
-          'ممتاز جداً',
-          'شرح مفيد للغاية',
-          'أشكرك على المحتوى',
-          'محتوى عالي الجودة',
-          'شرح شامل ومفيد',
-          'استفدت كثيراً',
-          'معلومات قيمة',
-          'شكراً جزيلاً'
-        ],
-        negative: [
-          'الشرح يحتاج تفصيل أكثر',
-          'ما وضحت بعض النقاط المهمة',
-          'المحتوى سريع شوي',
-          'ناقص معلومات عن البطارية',
-          'ما ذكرت الأسعار الحالية',
-          'الشرح غير واضح',
-          'ناقص تفاصيل مهمة',
-          'المحتوى سطحي',
-          'ما كفى الشرح',
-          'ناقص أمثلة عملية'
-        ],
-        personal: [
-          'أنا طالب هندسة، وش تنصحني؟',
-          'ميزانيتي محدودة، وش الأفضل؟',
-          'أحتاج آيباد للبرمجة',
-          'أنا مصور، أي موديل مناسب؟',
-          'أحتاج آيباد للدراسة فقط',
-          'أنا طالب طب، وش الأفضل؟',
-          'ميزانيتي 300 دولار',
-          'أحتاج آيباد للرسم',
-          'أنا مطور تطبيقات',
-          'أحتاج آيباد للألعاب'
-        ],
-        content: [
-          'هل يدعم Apple Pencil 2؟',
-          'كم عمر البطارية؟',
-          'هل يدعم 5G؟',
-          'ما الفرق بين الموديلات؟',
-          'أي إصدار iOS يدعم؟',
-          'كم سعة التخزين؟',
-          'هل يدعم الشحن السريع؟',
-          'ما سرعة المعالج؟',
-          'هل يدعم Wi-Fi 6؟',
-          'كم حجم الشاشة؟'
-        ],
-        suggestions: [
-          'فيديو عن الإكسسوارات',
-          'مقارنة مع سامسونج',
-          'شرح عن iOS 18',
-          'فيديو عن الكيبوردات',
-          'دليل شامل للشراء',
-          'فيديو عن واقيات الشاشة',
-          'مقارنة الأسعار',
-          'فيديو عن البطارية',
-          'شرح عن Apple Pencil',
-          'مقارنة مع Huawei'
-        ]
-      };
-      
-      const categoryVariations = variations[categoryKey] || [];
-      
-      // Generate additional comments up to currentCount
-      for (let i = 0; i < currentCount - baseComments.length; i++) {
-        const variationIndex = i % categoryVariations.length;
-        const baseComment = baseComments[i % baseComments.length];
-        
-        additionalComments.push({
-          text: categoryVariations.length > 0 
-            ? categoryVariations[variationIndex]
-            : `${baseComment.text} - تعليق ${i + 1}`,
-          likes: Math.max(1, Math.floor(Math.random() * 50) + 5)
-        });
-      }
-      
-      return [...baseComments, ...additionalComments];
+    // For 'all' category, load more from allComments array
+    if (categoryKey === 'all') {
+      return allComments.slice(0, currentCount);
     }
-    return baseComments;
+    
+    // For other categories, return the filtered comments up to currentCount
+    return baseComments.slice(0, Math.min(currentCount, baseComments.length));
   };
 
   const loadMoreComments = (categoryKey: string, category: any) => {
     const baseCount = category.comments.length;
     const currentCount = displayedCommentsCount[categoryKey] || baseCount;
-    const maxCount = category.count;
+    const maxCount = categoryKey === 'all' ? allComments.length : category.count;
     const nextCount = Math.min(currentCount + 30, maxCount);
     
     setDisplayedCommentsCount(prev => ({
@@ -433,7 +409,7 @@ export default function Home() {
                   <iframe
                     className="youtube-iframe-expanded"
                     src="https://www.youtube.com/embed/O_5nKvs8Ipo?autoplay=1"
-                    title="دليلك الشامل لشراء آيباد في 2024"
+                    title="أي آيباد بيناسبك ب 2024 (بعد التحديث)"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
@@ -442,17 +418,78 @@ export default function Home() {
               )}
             </div>
             <div className="video-metadata">
-              <h2 className="video-title">دليلك الشامل لشراء آيباد في 2024</h2>
+              <h2 className="video-title">أي آيباد بيناسبك ب 2024 (بعد التحديث)</h2>
               <div className="video-info">
-                <span className="info-item">📅 منذ 3 أشهر</span>
-                <span className="info-item">👁️ 125,430 مشاهدة</span>
-                <span className="info-item">👍 4,250 إعجاب</span>
+                <span className="info-item">📺 {videoDetails.channelName}</span>
+                <span className="info-item">👥 {videoDetails.channelSubscribers} مشترك</span>
+                <span className="info-item">📅 {videoDetails.uploadDate}</span>
+                <span className="info-item">👁️ {videoDetails.views} مشاهدة</span>
+                <span className="info-item">👍 {videoDetails.likes} إعجاب</span>
+                <span className="info-item">💬 {totalComments} تعليق</span>
               </div>
+              
+              {/* Video Description */}
+              <div className="video-description-section">
+                <div className="description-text-wrapper">
+                  <pre className="description-text">{videoDetails.description}</pre>
+                </div>
+                <button 
+                  className="see-more-btn"
+                  onClick={() => setDescriptionExpanded(true)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'right',
+                    marginTop: '0.75rem',
+                    marginBottom: '1rem',
+                    color: '#3ea6ff',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '0.75rem 0'
+                  }}
+                >
+                  عرض المزيد
+                </button>
+                <div className="video-tags">
+                  {videoDetails.tags.map((tag, idx) => (
+                    <span key={idx} className="video-tag">#{tag}</span>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Description Modal */}
+              {descriptionExpanded && (
+                <div className="description-modal-overlay" onClick={() => setDescriptionExpanded(false)}>
+                  <div className="description-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                      <h3>وصف الفيديو</h3>
+                      <button 
+                        className="modal-close-btn"
+                        onClick={() => setDescriptionExpanded(false)}
+                        aria-label="إغلاق"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="modal-content">
+                      <pre className="modal-description-text">{videoDetails.description}</pre>
+                      <div className="modal-tags">
+                        {videoDetails.tags.map((tag, idx) => (
+                          <span key={idx} className="video-tag">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
           {/* Quick Statistics */}
-          <div className="quick-stats">
+          {/* <div className="quick-stats">
             <div className="stat-card">
               <div className="stat-icon">📊</div>
               <div className="stat-content">
@@ -495,7 +532,7 @@ export default function Home() {
                 <div className="stat-label">سرعة الشرح</div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -583,7 +620,8 @@ export default function Home() {
                       <div className="comments-buttons">
                         {(() => {
                           const currentCount = displayedCommentsCount[key] || category.comments.length;
-                          const remaining = category.count - currentCount;
+                          const totalCount = key === 'all' ? allComments.length : category.count;
+                          const remaining = totalCount - currentCount;
                           const canLoadMore = remaining > 0;
                           const isExpanded = currentCount > category.comments.length;
                           const nextBatch = Math.min(30, remaining);
@@ -603,7 +641,7 @@ export default function Home() {
                                   className="view-all-btn"
                                   onClick={() => loadMoreComments(key, category)}
                                 >
-                                  عرض {nextBatch} تعليق إضافي ({currentCount} من {category.count})
+                                  عرض {nextBatch} تعليق إضافي ({currentCount} من {totalCount})
                                 </button>
                               )}
                             </>
